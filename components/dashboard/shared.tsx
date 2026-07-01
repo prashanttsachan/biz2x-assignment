@@ -10,11 +10,18 @@ export function PayrollOverview() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    apiFetch<{ records: PayslipRecord[] }>("/api/payroll")
-      .then((data) => setRecords(data.records))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+    async function loadPayroll() {
+      try {
+        const data = await apiFetch<{ records: PayslipRecord[] }>("/api/payroll");
+        setRecords(data.records);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load payroll");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadPayroll();
   }, []);
 
   if (loading) return <PanelShell title="Payroll Overview">Loading payroll...</PanelShell>;
