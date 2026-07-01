@@ -43,7 +43,6 @@ function getUploadedPayrollRecords(employeeId: string): PayslipRecord[] {
     .map((u) => u.extractedFields!);
 }
 
-/** Merges mock structured payroll with successfully extracted uploaded payslips. */
 export function getStructuredPayroll(employeeId: string): PayslipRecord[] {
   const mock = MOCK_PAYROLL.filter((p) => p.employeeId === employeeId);
   const uploaded = getUploadedPayrollRecords(employeeId);
@@ -52,7 +51,6 @@ export function getStructuredPayroll(employeeId: string): PayslipRecord[] {
   for (const record of mock) {
     byPeriod.set(payrollPeriodKey(record), record);
   }
-  // Uploaded payslips override mock data for the same month/year
   for (const record of uploaded) {
     byPeriod.set(payrollPeriodKey(record), record);
   }

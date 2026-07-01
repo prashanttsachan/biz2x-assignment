@@ -3,7 +3,6 @@ import { sessionRepository } from "@/lib/db/repositories/sessions";
 import { uploadRepository } from "@/lib/db/repositories/uploads";
 import { auditRepository } from "@/lib/db/repositories/audit";
 
-/** Hydrate all in-memory stores from disk. Called once per server process. */
 export function hydrateStores(state: {
   sessions: Map<string, import("@/lib/types").Session>;
   uploadedPayslips: Map<string, import("@/lib/types").UploadedPayslip>;

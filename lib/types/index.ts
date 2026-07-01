@@ -136,19 +136,68 @@ export interface AnswerSource {
 }
 
 export interface TaxSimulationInput {
+  regime?: "old" | "new";
   additional80C?: number;
   additional80D?: number;
+  additionalNps?: number;
   homeLoanInterest?: number;
 }
 
+export interface TaxSlabLine {
+  from: number;
+  to: number | null;
+  rate: number;
+  taxableAmount: number;
+  taxAmount: number;
+}
+
+export interface DeclarationSnapshot {
+  financialYear: string;
+  annualGross: number;
+  section80C: { declared: number; limit: number; remaining: number };
+  section80D: { declared: number; limit: number; remaining: number };
+  homeLoanInterest: { declared: number; limit: number; remaining: number };
+  hraExemptionEstimated: number;
+  ltaDeclared: number;
+}
+
+export interface TaxRegimeSnapshot {
+  regime: "old" | "new";
+  taxableIncome: number;
+  estimatedTax: number;
+  taxBeforeCess: number;
+  cess: number;
+  slabBreakdown: TaxSlabLine[];
+}
+
 export interface TaxSimulationResult {
+  regime: "old" | "new";
+  baselineOnly: boolean;
+  annualGross: number;
+  declaration: DeclarationSnapshot | null;
   currentTaxableIncome: number;
   projectedTaxableIncome: number;
   currentEstimatedTax: number;
   projectedEstimatedTax: number;
   estimatedSavings: number;
   steps: CalculationStep[];
+  slabBreakdown: TaxSlabLine[];
+  projectedSlabBreakdown: TaxSlabLine[];
+  regimeComparison: {
+    old: TaxRegimeSnapshot;
+    new: TaxRegimeSnapshot;
+    recommended: "old" | "new";
+    difference: number;
+    projectedOld: TaxRegimeSnapshot;
+  };
+  recommendations: string[];
   assumptions: string[];
+  appliedScenario: {
+    additional80C: number;
+    additional80D: number;
+    additionalNps: number;
+    additionalHomeLoan: number;
+  } | null;
 }
 
 export interface CalculationStep {

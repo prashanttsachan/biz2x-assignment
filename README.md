@@ -175,7 +175,8 @@ All endpoints require `Authorization: Bearer <token>` except login.
 | GET | `/api/chat/sessions/{id}` | Get session with message history |
 | DELETE | `/api/chat/sessions/{id}` | Delete a chat session |
 | POST | `/api/chat/sessions/{id}/messages` | `{ question }` → grounded answer + sources |
-| POST | `/api/tax/simulate` | `{ additional80C, additional80D, homeLoanInterest }` |
+| GET | `/api/tax/simulate` | Tax baseline — declaration, regime comparison, slab breakdown |
+| POST | `/api/tax/simulate` | `{ regime?, additional80C, additional80D, additionalNps, homeLoanInterest }` |
 | GET | `/api/checklist` | Investment proof checklist |
 | GET | `/api/audit` | Audit logs (admin) |
 | GET | `/api/health` | Health check (no auth) — for Docker/K8s probes |
@@ -212,10 +213,15 @@ npm run test:coverage
 
 ## Tax Simulation Assumptions
 
+- **Old vs new regime** comparison with illustrative slab rates
+- **Old regime**: Section 80C, 80D, HRA exemption, home loan interest, standard deduction
+- **New regime**: Standard deduction only (80C/80D/HRA not applied)
+- **HRA exemption**: min(rent − 10% basic, 50% basic metro, HRA received)
+- **80CCD(1B) NPS**: additional ₹50,000 beyond 80C limit
 - Simplified Indian income tax slabs (illustrative, **not for compliance**)
 - Standard deduction ₹50,000; 80C limit ₹1,50,000; 80D limit ₹25,000
 - Annual gross = latest monthly gross × 12
-- Does not model HRA exemption, LTA rules, or regime selection in full
+- Does not model full LTA rules or regime selection filing constraints
 
 ## Testing
 

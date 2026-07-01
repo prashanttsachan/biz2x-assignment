@@ -2,12 +2,6 @@ import fs from "fs";
 import path from "path";
 import { getDataRoot } from "./paths";
 
-/**
- * Lightweight file-system database wrapper.
- * Provides JSON and binary read/write with directory management.
- * Used as the persistence layer; runtime reads use in-memory caches
- * that are hydrated from these files on server start.
- */
 export class FileDb {
   constructor(private readonly root: string = getDataRoot()) {}
 
@@ -92,7 +86,6 @@ export class FileDb {
       .map((e) => e.name);
   }
 
-  /** Walk a directory tree and return absolute paths of files matching a predicate. */
   walkFiles(
     dirPath: string,
     match: (name: string, fullPath: string) => boolean
@@ -126,7 +119,6 @@ export function getFileDb(): FileDb {
   return dbInstance;
 }
 
-/** Reset singleton — for tests when DATA_DIR changes between runs. */
 export function resetFileDb(): void {
   dbInstance = null;
 }

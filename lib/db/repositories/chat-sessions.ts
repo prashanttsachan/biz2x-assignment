@@ -57,7 +57,6 @@ export const chatSessionRepository = {
       }
     }
 
-    // Legacy flat files at chat/{userId}.json (no subdir)
     for (const file of db.listFiles(DB_PATHS.chat())) {
       if (!file.endsWith(".json")) continue;
       const userId = file.replace(".json", "");

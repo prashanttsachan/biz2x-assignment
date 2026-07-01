@@ -1,6 +1,5 @@
 import path from "path";
 
-/** Root directory for all persisted application data. Override via DATA_DIR env var. */
 export function getDataRoot(): string {
   return process.env.DATA_DIR ?? path.join(process.cwd(), "data");
 }

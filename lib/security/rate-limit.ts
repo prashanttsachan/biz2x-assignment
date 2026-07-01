@@ -1,8 +1,3 @@
-/**
- * Simple in-memory rate limiter for prototype/demo use.
- * Production would use Redis or an edge rate-limit service.
- */
-
 interface RateLimitEntry {
   count: number;
   resetAt: number;
@@ -42,7 +37,6 @@ export function checkRateLimit(
   };
 }
 
-/** Reset store — for tests only */
 export function resetRateLimitStore(): void {
   store.clear();
 }

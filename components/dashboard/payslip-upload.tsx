@@ -133,7 +133,6 @@ export function PayslipUpload() {
       </div>
 
       <form onSubmit={handleUpload} className="space-y-4">
-        {/* File drop zone */}
         <div
           role="button"
           tabIndex={0}

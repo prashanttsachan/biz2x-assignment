@@ -23,7 +23,6 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  // Prevent caching of authenticated API responses
   if (request.nextUrl.pathname.startsWith("/api/")) {
     response.headers.set(
       "Cache-Control",

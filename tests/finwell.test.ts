@@ -115,6 +115,7 @@ describe("edge cases", () => {
 
   it("caps additional 80C to remaining limit", () => {
     const result = simulateTaxSavings("EMP001", { additional80C: 999999 });
+    expect(result.appliedScenario?.additional80C).toBe(30000);
     expect(result.projectedTaxableIncome).toBeGreaterThanOrEqual(0);
   });
 });

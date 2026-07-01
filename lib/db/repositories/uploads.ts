@@ -59,7 +59,6 @@ export const uploadRepository = {
     return db.exists(filePath) ? filePath : null;
   },
 
-  /** Resolve stored payslip file path by scanning upload directory. */
   findStoredFilePath(employeeId: string, uploadId: string): string | null {
     const db = getFileDb();
     const uploadDir = DB_PATHS.uploadDir(employeeId, uploadId);

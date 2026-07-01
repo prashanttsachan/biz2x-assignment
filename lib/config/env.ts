@@ -1,5 +1,3 @@
-/** Runtime environment configuration with validation helpers. */
-
 export function getEnv(key: string, fallback?: string): string {
   const value = process.env[key]?.trim();
   if (value) return value;
