@@ -25,6 +25,23 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+## Demo Walkthrough (~5 min)
+
+Recommended flow for reviewers:
+
+| Step | Account | Tab | What to show |
+|------|---------|-----|--------------|
+| 1 | `john.doe@company.com` | **Payroll** | 3 months structured data, YTD, earnings/deductions |
+| 2 | John | **AI Assistant** | Ask *"What is my net pay in March?"* — grounded answer with sources |
+| 3 | John | **Tax Simulator** | Baseline loads automatically; run *Max 80C* preset; show old vs new regime |
+| 4 | John | **Checklist** | Pending proof items from tax declaration |
+| 5 | John | **Compare** | Feb vs Mar payslip diff |
+| 6 | `psachan190@gmail.com` | **Upload** | Upload a payslip PDF; show OCR extraction → payroll populates |
+| 7 | Prashant | **Payroll / Chat** | Data from uploads only (no mock payroll) |
+| 8 | `payroll.admin@company.com` | **Admin** | Audit logs, sanitized employee summary |
+
+**Tips:** Demo accounts are one-click on the login page. Set `LLM_API_TOKEN` in `.env.local` for live AI/OCR; without it, mock fallback still works.
+
 ### Demo Accounts
 
 | Email | Password | Role |
@@ -109,7 +126,7 @@ data/
 | `paths.ts` | Canonical paths under `data/` |
 | `repositories/sessions.ts` | Session CRUD |
 | `repositories/uploads.ts` | Upload metadata + binary file storage |
-| `repositories/chat.ts` | Chat history persistence |
+| `repositories/chat-sessions.ts` | Chat history persistence |
 | `repositories/audit.ts` | Audit log persistence |
 | `index.ts` | Hydration orchestration |
 
