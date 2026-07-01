@@ -12,6 +12,7 @@ import {
   validatePayslipFields,
 } from "@/lib/ocr/payslip-extractor";
 import { assertEmployeeAccess } from "@/lib/security/access-control";
+import { sanitizeFileName } from "@/lib/security/input-validation";
 import type { UploadedPayslip } from "@/lib/types";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
 
   const buffer = file ? Buffer.from(await file.arrayBuffer()) : Buffer.alloc(0);
   const uploadId = randomUUID();
-  const fileName = file?.name ?? "mock-payslip-demo.pdf";
+  const fileName = sanitizeFileName(file?.name ?? "mock-payslip-demo.pdf");
   const mimeType = file?.type ?? "application/pdf";
   const hasFile = buffer.length > 0;
 

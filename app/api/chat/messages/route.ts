@@ -8,6 +8,7 @@ import {
   getClientIp,
   unauthorizedResponse,
 } from "@/lib/api/helpers";
+import { validateChatQuestion } from "@/lib/security/input-validation";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -19,11 +20,12 @@ export async function POST(request: NextRequest) {
     sessionId?: string;
   };
 
-  if (!body.question?.trim()) {
-    return badRequestResponse("Question is required.");
+  const validation = validateChatQuestion(body.question ?? "");
+  if (!validation.valid) {
+    return badRequestResponse(validation.error!);
   }
 
-  const question = body.question.trim();
+  const question = body.question!.trim();
   let sessionId = body.sessionId;
 
   if (sessionId) {

@@ -149,6 +149,9 @@ LLM_WRAPPER_URL=https://llm-wrapper-741152993481.asia-south1.run.app
 |---------|----------------|
 | Authentication | Bearer token sessions (8h TTL), mock credentials |
 | Authorization | `assertEmployeeAccess()` on every employee-scoped endpoint |
+| Rate limiting | Login endpoint throttled (10 attempts / 15 min per IP) |
+| Security headers | X-Frame-Options, nosniff, HSTS (prod), no-store on API |
+| Input validation | Chat length limits, filename sanitization on uploads |
 | Data isolation | Payroll filtered by `employeeId`; cross-user requests return 403 |
 | Admin minimization | Admin sees summary fields only (no full breakup) |
 | Sensitive data | Payslips scoped per employee; audit trail for access |
@@ -175,6 +178,37 @@ All endpoints require `Authorization: Bearer <token>` except login.
 | POST | `/api/tax/simulate` | `{ additional80C, additional80D, homeLoanInterest }` |
 | GET | `/api/checklist` | Investment proof checklist |
 | GET | `/api/audit` | Audit logs (admin) |
+| GET | `/api/health` | Health check (no auth) — for Docker/K8s probes |
+
+## Production Deployment
+
+### Docker
+
+```bash
+# Build and run with persistent data volume
+docker compose up --build -d
+
+# Or build manually
+docker build -t finwell-ai .
+docker run -p 3000:3000 \
+  -e LLM_API_TOKEN=your_token \
+  -v finwell-data:/app/data \
+  finwell-ai
+```
+
+Health check: `GET /api/health` returns `{ status: "ok", llmConfigured, warnings }`.
+
+Mount `DATA_DIR` (default `/app/data` in container) to persist uploads, sessions, chat, and audit logs across restarts.
+
+### CI / Quality Gates
+
+GitHub Actions runs on push/PR: **lint → typecheck → test → build**.
+
+```bash
+npm run ci           # Full local quality gate
+npm run typecheck    # TypeScript check
+npm run test:coverage
+```
 
 ## Tax Simulation Assumptions
 
@@ -186,17 +220,19 @@ All endpoints require `Authorization: Bearer <token>` except login.
 ## Testing
 
 ```bash
-npm test
+npm test              # All unit tests
+npm run test:coverage # With coverage report
 ```
 
-Covers:
+**Test suites** (`tests/`):
 
-- Unauthorized cross-user access
-- Payslip comparison logic
-- Tax simulation & step breakdown
-- Checklist generation for missing proofs
-- Payslip field validation (inconsistent net pay)
-- Edge cases (unknown employee, capped 80C)
+| File | Coverage |
+|------|----------|
+| `finwell.test.ts` | Access control, payroll, tax sim, checklist, payslip validation |
+| `file-db.test.ts` | File persistence, session/upload reload after restart |
+| `auth.test.ts` | Login credentials, session create/destroy/expiry |
+| `security.test.ts` | Rate limiting, input validation, env warnings |
+| `chat-sessions.test.ts` | Chat isolation, title derivation, disk persistence |
 
 ## Known Limitations
 
@@ -209,11 +245,14 @@ Covers:
 ## Scripts
 
 ```bash
-npm run dev      # Development server
-npm run build    # Production build
-npm run start    # Production server
-npm run lint     # ESLint
-npm test         # Unit tests
+npm run dev          # Development server
+npm run build        # Production build
+npm run start        # Production server
+npm run lint         # ESLint
+npm run typecheck    # TypeScript
+npm test             # Unit tests
+npm run ci           # Lint + typecheck + test + build
+docker compose up    # Run in Docker
 ```
 
 ## Tech Stack
