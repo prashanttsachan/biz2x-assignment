@@ -77,9 +77,10 @@ describe("investment checklist", () => {
     expect(checklist.some((i) => i.category === "Section 80C")).toBe(true);
   });
 
-  it("includes HRA proof when declared", () => {
+  it("returns empty checklist when employee has no tax declaration", () => {
     const checklist = generateInvestmentChecklist("EMP002");
-    expect(checklist.some((i) => i.category === "HRA")).toBe(true);
+    expect(checklist.length).toBe(1);
+    expect(checklist[0].title).toContain("tax declaration");
   });
 });
 

@@ -30,7 +30,7 @@ Open [http://localhost:3000](http://localhost:3000)
 | Email | Password | Role |
 |-------|----------|------|
 | john.doe@company.com | employee123 | Employee (EMP001) |
-| jane.smith@company.com | employee123 | Employee (EMP002) |
+| psachan190@gmail.com | employee123 | Employee (EMP002) — no payroll data yet |
 | payroll.admin@company.com | admin123 | Payroll Admin |
 
 ## Architecture
@@ -50,7 +50,8 @@ app/
 
 lib/
 ├── types/                  # Domain models
-├── data/                   # Mock payroll + in-memory store
+├── db/                     # File-based persistence wrapper + repositories
+├── data/                   # Mock payroll + in-memory cache (hydrated from disk)
 ├── auth/                   # Session/token management
 ├── security/               # Access control & authorization
 ├── payroll/                # Payroll query & comparison logic
@@ -75,7 +76,43 @@ flowchart LR
   Payroll --> Mock[(Mock Payroll DB)]
   Chat --> Mock
   API --> Audit[Audit Log]
+  API --> FileDb[(data/ on disk)]
+  FileDb --> Memory[In-memory cache]
 ```
+
+## File Storage & Persistence
+
+Runtime reads use **in-memory caches** for speed. Every write is persisted to disk under `data/` (configurable via `DATA_DIR`). On server restart, stores are **automatically rehydrated** from files.
+
+```
+data/
+├── sessions/               # One JSON file per auth session
+│   └── {token}.json
+├── uploads/                # Payslip uploads per employee
+│   └── {employeeId}/
+│       └── {uploadId}/
+│           ├── metadata.json    # Extracted fields, status, filename
+│           ├── payslip.pdf      # Original uploaded file (binary)
+│           └── ocr-text.txt     # Raw OCR/LLM output (optional)
+├── chat/                   # Chat history per user
+│   └── {userId}.json
+└── audit/
+    └── logs.json           # Append-only audit trail
+```
+
+### Database wrapper (`lib/db/`)
+
+| Module | Purpose |
+|--------|---------|
+| `file-db.ts` | Core JSON/binary read-write, directory management |
+| `paths.ts` | Canonical paths under `data/` |
+| `repositories/sessions.ts` | Session CRUD |
+| `repositories/uploads.ts` | Upload metadata + binary file storage |
+| `repositories/chat.ts` | Chat history persistence |
+| `repositories/audit.ts` | Audit log persistence |
+| `index.ts` | Hydration orchestration |
+
+Mock payroll (`MOCK_PAYROLL` in code) remains static; only **user-generated data** (uploads, sessions, chat, audit) is file-persisted.
 
 ## AI & Grounding Strategy
 
@@ -158,7 +195,7 @@ Covers:
 ## Known Limitations
 
 - Mock payroll data (not connected to real HRIS)
-- In-memory session/upload store (resets on server restart)
+- File-based storage (not a production RDBMS); suitable for prototype/demo
 - Simplified tax logic — documented assumptions apply
 - OCR falls back to mock sample without LLM token
 - No production encryption, compliance certification, or real SSO

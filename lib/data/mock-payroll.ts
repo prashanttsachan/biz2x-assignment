@@ -11,11 +11,11 @@ export const MOCK_USERS: User[] = [
   },
   {
     id: "user-002",
-    email: "jane.smith@company.com",
-    name: "Jane Smith",
+    email: "psachan190@gmail.com",
+    name: "Prashant Sachan",
     employeeId: "EMP002",
     role: "employee",
-    department: "Product",
+    department: "Engineering",
   },
   {
     id: "user-admin",
@@ -29,7 +29,7 @@ export const MOCK_USERS: User[] = [
 
 export const MOCK_PASSWORDS: Record<string, string> = {
   "john.doe@company.com": "employee123",
-  "jane.smith@company.com": "employee123",
+  "psachan190@gmail.com": "employee123",
   "payroll.admin@company.com": "admin123",
 };
 
@@ -130,46 +130,6 @@ export const MOCK_PAYROLL: PayslipRecord[] = [
     ytdTds: 27500,
     ytdPt: 600,
   }),
-  createPayslip("EMP002", "Jan", 2025, {
-    basic: 60000,
-    hra: 24000,
-    lta: 6000,
-    specialAllowance: 18000,
-    pf: 7200,
-    tds: 12000,
-    netPay: 90600,
-    ytdGross: 108000,
-    ytdNet: 90600,
-    ytdPf: 7200,
-    ytdTds: 12000,
-  }),
-  createPayslip("EMP002", "Feb", 2025, {
-    basic: 60000,
-    hra: 24000,
-    lta: 6000,
-    specialAllowance: 18000,
-    pf: 7200,
-    tds: 12000,
-    travelReimb: 0,
-    netPay: 87600,
-    ytdGross: 216000,
-    ytdNet: 178200,
-    ytdPf: 14400,
-    ytdTds: 24000,
-  }),
-  createPayslip("EMP002", "Mar", 2025, {
-    basic: 60000,
-    hra: 24000,
-    lta: 6000,
-    specialAllowance: 18000,
-    pf: 7200,
-    tds: 13500,
-    netPay: 89100,
-    ytdGross: 324000,
-    ytdNet: 267300,
-    ytdPf: 21600,
-    ytdTds: 37500,
-  }),
 ];
 
 export const MOCK_TAX_DECLARATIONS: TaxDeclaration[] = [
@@ -202,39 +162,6 @@ export const MOCK_TAX_DECLARATIONS: TaxDeclaration[] = [
     },
     homeLoanInterest: {
       declared: 0,
-      proofSubmitted: false,
-      proofDueDate: "2025-03-31",
-    },
-  },
-  {
-    employeeId: "EMP002",
-    financialYear: "2024-25",
-    section80C: {
-      declared: 80000,
-      limit: 150000,
-      proofSubmitted: false,
-      proofDueDate: "2025-03-31",
-    },
-    section80D: {
-      declared: 25000,
-      limit: 25000,
-      proofSubmitted: true,
-      proofDueDate: "2025-03-31",
-    },
-    hra: {
-      declared: true,
-      rentPaidMonthly: 22000,
-      proofSubmitted: false,
-      proofDueDate: "2025-03-31",
-    },
-    lta: {
-      declared: false,
-      amount: 0,
-      proofSubmitted: false,
-      proofDueDate: "2025-03-31",
-    },
-    homeLoanInterest: {
-      declared: 150000,
       proofSubmitted: false,
       proofDueDate: "2025-03-31",
     },

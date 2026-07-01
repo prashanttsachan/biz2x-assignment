@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 const DEMO_ACCOUNTS = [
   { email: "john.doe@company.com", password: "employee123", label: "John Doe (Employee)" },
-  { email: "jane.smith@company.com", password: "employee123", label: "Jane Smith (Employee)" },
+  { email: "psachan190@gmail.com", password: "employee123", label: "Prashant Sachan (Employee)" },
   { email: "payroll.admin@company.com", password: "admin123", label: "Payroll Admin" },
 ];
 

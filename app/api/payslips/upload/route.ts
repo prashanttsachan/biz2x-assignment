@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
   const uploadId = randomUUID();
   const fileName = file?.name ?? "mock-payslip-demo.pdf";
   const mimeType = file?.type ?? "application/pdf";
+  const hasFile = buffer.length > 0;
 
   const pending: UploadedPayslip = {
     id: uploadId,
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
     extractedFields: null,
     status: "processing",
   };
-  payslipUploadStore.save(pending);
+  payslipUploadStore.save(pending, hasFile ? buffer : undefined);
 
   try {
     const extraction = await extractPayslipFromDocument({
