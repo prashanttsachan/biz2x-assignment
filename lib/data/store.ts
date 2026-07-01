@@ -80,6 +80,9 @@ export const payslipUploadStore = {
       (p) => p.employeeId === employeeId
     );
   },
+  listAll() {
+    return Array.from(getStore().uploadedPayslips.values());
+  },
   update(id: string, updates: Partial<UploadedPayslip>, fileBuffer?: Buffer) {
     const existing = getStore().uploadedPayslips.get(id);
     if (!existing) return undefined;

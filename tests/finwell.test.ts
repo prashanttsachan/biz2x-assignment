@@ -51,6 +51,11 @@ describe("payroll queries", () => {
     const comparison = comparePayslips("EMP001", "Jan", 2024, "Feb", 2025);
     expect(comparison).toBeNull();
   });
+
+  it("returns empty payroll for employee with no mock or uploaded data", () => {
+    const records = getStructuredPayroll("EMP999");
+    expect(records).toEqual([]);
+  });
 });
 
 describe("tax simulator", () => {

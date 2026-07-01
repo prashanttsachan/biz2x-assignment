@@ -10,31 +10,62 @@ import type {
   TaxDeclaration,
 } from "@/lib/types";
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function payrollPeriodKey(record: PayslipRecord): string {
+  return `${record.year}-${record.month}`;
+}
+
+function sortPayrollRecords(records: PayslipRecord[]): PayslipRecord[] {
+  return [...records].sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    return MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month);
+  });
+}
+
+function getUploadedPayrollRecords(employeeId: string): PayslipRecord[] {
+  return payslipUploadStore
+    .listByEmployee(employeeId)
+    .filter((u) => u.status === "completed" && u.extractedFields)
+    .map((u) => u.extractedFields!);
+}
+
+/** Merges mock structured payroll with successfully extracted uploaded payslips. */
 export function getStructuredPayroll(employeeId: string): PayslipRecord[] {
-  return MOCK_PAYROLL.filter((p) => p.employeeId === employeeId).sort(
-    (a, b) => {
-      const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      if (a.year !== b.year) return a.year - b.year;
-      return months.indexOf(a.month) - months.indexOf(b.month);
-    }
-  );
+  const mock = MOCK_PAYROLL.filter((p) => p.employeeId === employeeId);
+  const uploaded = getUploadedPayrollRecords(employeeId);
+
+  const byPeriod = new Map<string, PayslipRecord>();
+  for (const record of mock) {
+    byPeriod.set(payrollPeriodKey(record), record);
+  }
+  // Uploaded payslips override mock data for the same month/year
+  for (const record of uploaded) {
+    byPeriod.set(payrollPeriodKey(record), record);
+  }
+
+  return sortPayrollRecords(Array.from(byPeriod.values()));
 }
 
 export function getAllPayrollRecords(): PayslipRecord[] {
-  return [...MOCK_PAYROLL];
+  const employeeIds = new Set<string>();
+  MOCK_PAYROLL.forEach((p) => employeeIds.add(p.employeeId));
+  payslipUploadStore.listAll().forEach((u) => employeeIds.add(u.employeeId));
+
+  return Array.from(employeeIds).flatMap((id) => getStructuredPayroll(id));
 }
 
 export function getPayslipById(
@@ -143,8 +174,10 @@ export function buildPayrollContext(employeeId: string): {
 
   const sources: AnswerSource[] = payroll.flatMap((p) => [
     {
-      type: "payroll" as const,
-      reference: `${p.month} ${p.year} payslip`,
+      type: (p.source === "uploaded" ? "payslip" : "payroll") as
+        | "payslip"
+        | "payroll",
+      reference: `${p.month} ${p.year} payslip${p.source === "uploaded" ? " (uploaded)" : ""}`,
       field: "netPay",
       value: p.netPay,
     },

@@ -35,8 +35,10 @@ export async function POST(request: NextRequest) {
   const file = formData.get("file") as File | null;
   const useMockOcr = formData.get("useMockOcr") === "true";
 
-  if (!file && !useMockOcr) {
-    return badRequestResponse("No file uploaded.");
+  if (!useMockOcr && !file) {
+    return badRequestResponse(
+      "A payslip file is required for LLM extraction. Select a PDF or image to upload."
+    );
   }
 
   if (file && !ALLOWED_TYPES.includes(file.type)) {

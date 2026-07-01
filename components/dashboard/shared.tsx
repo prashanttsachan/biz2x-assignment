@@ -10,6 +10,7 @@ export function PayrollOverview() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setLoading(true);
     apiFetch<{ records: PayslipRecord[] }>("/api/payroll")
       .then((data) => setRecords(data.records))
       .catch((e: Error) => setError(e.message))
@@ -18,6 +19,17 @@ export function PayrollOverview() {
 
   if (loading) return <PanelShell title="Payroll Overview">Loading payroll...</PanelShell>;
   if (error) return <PanelShell title="Payroll Overview"><ErrorBox message={error} /></PanelShell>;
+
+  if (records.length === 0) {
+    return (
+      <PanelShell title="Payroll Overview">
+        <p className="text-sm text-slate-600">
+          No payroll records yet. Upload payslips on the <strong>Upload</strong> tab
+          to populate your payroll history.
+        </p>
+      </PanelShell>
+    );
+  }
 
   const latest = records[records.length - 1];
 
@@ -37,6 +49,7 @@ export function PayrollOverview() {
           <thead className="bg-slate-50 text-left text-slate-600">
             <tr>
               <th className="px-4 py-3 font-medium">Period</th>
+              <th className="px-4 py-3 font-medium">Source</th>
               <th className="px-4 py-3 font-medium">Basic</th>
               <th className="px-4 py-3 font-medium">HRA</th>
               <th className="px-4 py-3 font-medium">PF</th>
@@ -49,6 +62,17 @@ export function PayrollOverview() {
             {records.map((r) => (
               <tr key={r.id} className="border-t border-slate-100">
                 <td className="px-4 py-3 font-medium">{r.month} {r.year}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      r.source === "uploaded"
+                        ? "bg-indigo-100 text-indigo-800"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {r.source === "uploaded" ? "Uploaded" : "Structured"}
+                  </span>
+                </td>
                 <td className="px-4 py-3">{formatINR(r.earnings.basic)}</td>
                 <td className="px-4 py-3">{formatINR(r.earnings.hra)}</td>
                 <td className="px-4 py-3">{formatINR(r.deductions.providentFund)}</td>

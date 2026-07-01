@@ -18,7 +18,7 @@ export interface LlmResponse {
 export async function queryLlm(
   options: LlmQueryOptions
 ): Promise<LlmResponse> {
-  const token = process.env.LLM_API_TOKEN;
+  const token = process.env.LLM_API_TOKEN?.trim();
 
   if (!token) {
     return {
@@ -76,5 +76,5 @@ export async function queryLlm(
 }
 
 export function isLlmConfigured(): boolean {
-  return Boolean(process.env.LLM_API_TOKEN);
+  return Boolean(process.env.LLM_API_TOKEN?.trim());
 }
