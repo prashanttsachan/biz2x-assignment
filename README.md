@@ -94,8 +94,9 @@ data/
 │           ├── metadata.json    # Extracted fields, status, filename
 │           ├── payslip.pdf      # Original uploaded file (binary)
 │           └── ocr-text.txt     # Raw OCR/LLM output (optional)
-├── chat/                   # Chat history per user
-│   └── {userId}.json
+├── chat/                   # Chat sessions per user
+│   └── {userId}/
+│       └── {sessionId}.json
 └── audit/
     └── logs.json           # Append-only audit trail
 ```
@@ -165,7 +166,12 @@ All endpoints require `Authorization: Bearer <token>` except login.
 | GET | `/api/payroll` | Employee payroll records |
 | POST | `/api/payslips/upload` | Multipart: `file`, `useMockOcr` |
 | GET | `/api/payslips/compare?monthA&yearA&monthB&yearB` | Compare two periods |
-| POST | `/api/chat` | `{ question }` → grounded answer + sources |
+| POST | `/api/chat/messages` | `{ question, sessionId? }` — creates session on first message if omitted |
+| POST | `/api/chat/sessions` | Create session manually (optional) |
+| GET | `/api/chat/sessions` | List user's chat sessions |
+| GET | `/api/chat/sessions/{id}` | Get session with message history |
+| DELETE | `/api/chat/sessions/{id}` | Delete a chat session |
+| POST | `/api/chat/sessions/{id}/messages` | `{ question }` → grounded answer + sources |
 | POST | `/api/tax/simulate` | `{ additional80C, additional80D, homeLoanInterest }` |
 | GET | `/api/checklist` | Investment proof checklist |
 | GET | `/api/audit` | Audit logs (admin) |

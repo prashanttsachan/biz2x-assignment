@@ -1,6 +1,6 @@
 import {
   auditRepository,
-  chatRepository,
+  chatSessionRepository,
   hydrateStores,
   sessionRepository,
   uploadRepository,
@@ -8,15 +8,18 @@ import {
 import type {
   AuditLogEntry,
   ChatMessage,
+  ChatSession,
+  ChatSessionSummary,
   Session,
   UploadedPayslip,
 } from "@/lib/types";
+import { randomUUID } from "crypto";
 
 const globalStore = globalThis as typeof globalThis & {
   __finwellStore?: {
     sessions: Map<string, Session>;
     uploadedPayslips: Map<string, UploadedPayslip>;
-    chatHistory: Map<string, ChatMessage[]>;
+    chatSessions: Map<string, ChatSession>;
     auditLogs: AuditLogEntry[];
     hydrated: boolean;
   };
@@ -27,7 +30,7 @@ function getStore() {
     globalStore.__finwellStore = {
       sessions: new Map(),
       uploadedPayslips: new Map(),
-      chatHistory: new Map(),
+      chatSessions: new Map(),
       auditLogs: [],
       hydrated: false,
     };
@@ -51,6 +54,24 @@ function pruneExpiredSessions(sessions: Map<string, Session>): void {
       sessionRepository.delete(token);
     }
   }
+}
+
+function toSummary(session: ChatSession): ChatSessionSummary {
+  const last = session.messages[session.messages.length - 1];
+  return {
+    id: session.id,
+    title: session.title,
+    createdAt: session.createdAt,
+    updatedAt: session.updatedAt,
+    messageCount: session.messages.length,
+    preview: last?.content.slice(0, 80),
+  };
+}
+
+function deriveTitle(question: string): string {
+  const trimmed = question.trim();
+  if (trimmed.length <= 48) return trimmed;
+  return trimmed.slice(0, 48) + "…";
 }
 
 export const sessionStore = {
@@ -99,20 +120,88 @@ export const payslipUploadStore = {
   },
 };
 
+export const chatSessionStore = {
+  create(userId: string, title = "New conversation"): ChatSession {
+    const now = new Date().toISOString();
+    const session: ChatSession = {
+      id: randomUUID(),
+      userId,
+      title,
+      createdAt: now,
+      updatedAt: now,
+      messages: [],
+    };
+    getStore().chatSessions.set(session.id, session);
+    chatSessionRepository.save(session);
+    return session;
+  },
+
+  get(sessionId: string): ChatSession | undefined {
+    return getStore().chatSessions.get(sessionId);
+  },
+
+  listByUser(userId: string): ChatSessionSummary[] {
+    return Array.from(getStore().chatSessions.values())
+      .filter((s) => s.userId === userId && s.messages.length > 0)
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+      .map(toSummary);
+  },
+
+  appendMessage(sessionId: string, message: ChatMessage): ChatSession | undefined {
+    const session = getStore().chatSessions.get(sessionId);
+    if (!session) return undefined;
+
+    session.messages.push(message);
+    session.updatedAt = new Date().toISOString();
+
+    if (
+      session.title === "New conversation" &&
+      message.role === "user" &&
+      message.content.trim()
+    ) {
+      session.title = deriveTitle(message.content);
+    }
+
+    chatSessionRepository.save(session);
+    return session;
+  },
+
+  delete(sessionId: string): boolean {
+    const session = getStore().chatSessions.get(sessionId);
+    if (!session) return false;
+    getStore().chatSessions.delete(sessionId);
+    chatSessionRepository.delete(session.userId, sessionId);
+    return true;
+  },
+
+  getHistory(sessionId: string): ChatMessage[] {
+    return getStore().chatSessions.get(sessionId)?.messages ?? [];
+  },
+};
+
+/** @deprecated Use chatSessionStore */
 export const chatStore = {
   append(userId: string, message: ChatMessage) {
-    const store = getStore();
-    const history = store.chatHistory.get(userId) ?? [];
-    history.push(message);
-    store.chatHistory.set(userId, history);
-    chatRepository.save(userId, history);
+    const sessions = chatSessionStore.listByUser(userId);
+    let session =
+      sessions.length > 0
+        ? chatSessionStore.get(sessions[0].id)
+        : undefined;
+    if (!session) session = chatSessionStore.create(userId);
+    chatSessionStore.appendMessage(session.id, message);
   },
   getHistory(userId: string) {
-    return getStore().chatHistory.get(userId) ?? [];
+    const sessions = chatSessionStore.listByUser(userId);
+    if (sessions.length === 0) return [];
+    return chatSessionStore.getHistory(sessions[0].id);
   },
   clear(userId: string) {
-    getStore().chatHistory.delete(userId);
-    chatRepository.delete(userId);
+    for (const s of chatSessionStore.listByUser(userId)) {
+      chatSessionStore.delete(s.id);
+    }
   },
 };
 
@@ -132,12 +221,11 @@ export const auditStore = {
   },
 };
 
-/** Exposed for tests — reset in-memory state and re-hydrate from disk. */
 export function reloadStoresFromDisk(): void {
   if (globalStore.__finwellStore) {
     globalStore.__finwellStore.sessions.clear();
     globalStore.__finwellStore.uploadedPayslips.clear();
-    globalStore.__finwellStore.chatHistory.clear();
+    globalStore.__finwellStore.chatSessions.clear();
     globalStore.__finwellStore.auditLogs = [];
     globalStore.__finwellStore.hydrated = false;
   }

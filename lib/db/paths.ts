@@ -20,8 +20,13 @@ export const DB_PATHS = {
   uploadFile: (employeeId: string, uploadId: string, ext: string) =>
     path.join(getDataRoot(), "uploads", employeeId, uploadId, `payslip${ext}`),
   chat: () => path.join(getDataRoot(), "chat"),
+  /** @deprecated legacy flat history — migrated on load */
   chatHistory: (userId: string) =>
     path.join(getDataRoot(), "chat", `${userId}.json`),
+  chatSessions: (userId: string) =>
+    path.join(getDataRoot(), "chat", userId),
+  chatSession: (userId: string, sessionId: string) =>
+    path.join(getDataRoot(), "chat", userId, `${sessionId}.json`),
   audit: () => path.join(getDataRoot(), "audit"),
   auditLogs: () => path.join(getDataRoot(), "audit", "logs.json"),
 } as const;

@@ -110,6 +110,24 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export interface ChatSession {
+  id: string;
+  userId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: ChatMessage[];
+}
+
+export interface ChatSessionSummary {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+  preview?: string;
+}
+
 export interface AnswerSource {
   type: "payslip" | "payroll" | "tax_declaration" | "assumption";
   reference: string;
@@ -180,6 +198,9 @@ export type AuditAction =
   | "payslip_upload"
   | "payslip_view"
   | "chat_query"
+  | "chat_session_create"
+  | "chat_session_view"
+  | "chat_session_delete"
   | "tax_simulation"
   | "checklist_view"
   | "payslip_compare"
