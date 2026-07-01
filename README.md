@@ -1,36 +1,181 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FinWell AI — Personalized Financial Wellness & Tax Assistant
 
-## Getting Started
+AI-powered employee financial wellness prototype that helps staff understand salary structure, deductions, reimbursements, year-to-date payroll values, and basic tax-saving opportunities. Built for the **Lead Engineer** assignment: *Personalized Financial Wellness & Tax AI Agent*.
 
-First, run the development server:
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Payslip Upload & OCR** | Upload PDF/image payslips; LLM-based extraction via provided wrapper, with mock OCR fallback |
+| **Payroll Overview** | Structured monthly breakup — basic, HRA, LTA, PF, TDS, reimbursements, net pay, YTD |
+| **AI Assistant** | Document-grounded Q&A with hallucination safeguards and source references |
+| **Tax Simulator** | Estimate impact of additional 80C / 80D / home loan interest with step-by-step breakdown |
+| **Proof Checklist** | Personalized investment proof checklist from tax declarations |
+| **Payslip Comparison** | Month-over-month diff for earnings, deductions, and net pay |
+| **Access Control** | User-level auth; employees see only their data; admin gets sanitized summary |
+| **Audit Logging** | Upload, query, view, and admin actions logged |
+
+## Quick Start
 
 ```bash
+npm install
+cp .env.example .env.local   # optional: add LLM_API_TOKEN for live AI/OCR
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Demo Accounts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Email | Password | Role |
+|-------|----------|------|
+| john.doe@company.com | employee123 | Employee (EMP001) |
+| jane.smith@company.com | employee123 | Employee (EMP002) |
+| payroll.admin@company.com | admin123 | Payroll Admin |
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+├── api/                    # REST API layer
+│   ├── auth/               # Login, logout, session
+│   ├── payroll/            # Structured payroll queries
+│   ├── payslips/           # Upload, compare
+│   ├── chat/               # AI Q&A orchestration
+│   ├── tax/simulate/       # Tax-saving simulation
+│   ├── checklist/          # Investment proof checklist
+│   └── audit/              # Audit log (admin)
+├── dashboard/              # Main employee UI
+└── login/                  # Authentication UI
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+lib/
+├── types/                  # Domain models
+├── data/                   # Mock payroll + in-memory store
+├── auth/                   # Session/token management
+├── security/               # Access control & authorization
+├── payroll/                # Payroll query & comparison logic
+├── tax/                    # Simulator & checklist generator
+├── ocr/                    # Payslip extraction (LLM + mock)
+├── ai/                     # LLM client, prompts, chat orchestration
+└── audit/                  # Audit logging
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Data Flow
 
-## Deploy on Vercel
+```mermaid
+flowchart LR
+  UI[Web UI] --> API[Next.js API Routes]
+  API --> Auth[Session Auth]
+  API --> ACL[Access Control]
+  API --> Payroll[Payroll Service]
+  API --> OCR[Payslip Extractor]
+  API --> Chat[Chat Orchestrator]
+  OCR --> LLM[LLM Wrapper]
+  Chat --> LLM
+  Payroll --> Mock[(Mock Payroll DB)]
+  Chat --> Mock
+  API --> Audit[Audit Log]
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## AI & Grounding Strategy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Prompts in `lib/ai/prompts.ts` enforce:
+
+1. **Answer only from provided data** — structured payroll, uploaded payslips, tax declarations
+2. **Refusal when data missing** — explicit message to contact Payroll/HR
+3. **No invented amounts** — salary/tax figures must come from context
+4. **Source references** — responses cite payslip month/field where possible
+5. **Fallback mode** — rule-based answers from structured data when `LLM_API_TOKEN` is unset
+
+### LLM Wrapper Integration
+
+Uses the provided endpoint (see `ai-interview-docs.txt`):
+
+```bash
+curl -X POST "$LLM_WRAPPER_URL/llm/query" \
+  -H "Authorization: Bearer $LLM_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"...","pdfBase64":"..."}'
+```
+
+Set in `.env.local`:
+
+```
+LLM_API_TOKEN=your_token
+LLM_WRAPPER_URL=https://llm-wrapper-741152993481.asia-south1.run.app
+```
+
+## Security & Privacy (Prototype)
+
+| Control | Implementation |
+|---------|----------------|
+| Authentication | Bearer token sessions (8h TTL), mock credentials |
+| Authorization | `assertEmployeeAccess()` on every employee-scoped endpoint |
+| Data isolation | Payroll filtered by `employeeId`; cross-user requests return 403 |
+| Admin minimization | Admin sees summary fields only (no full breakup) |
+| Sensitive data | Payslips scoped per employee; audit trail for access |
+| Production notes | Would use SSO/OIDC, encryption at rest, RBAC, data masking |
+
+## API Reference
+
+All endpoints require `Authorization: Bearer <token>` except login.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login` | `{ email, password }` → token + user |
+| GET | `/api/auth/me` | Current user |
+| POST | `/api/auth/logout` | Invalidate session |
+| GET | `/api/payroll` | Employee payroll records |
+| POST | `/api/payslips/upload` | Multipart: `file`, `useMockOcr` |
+| GET | `/api/payslips/compare?monthA&yearA&monthB&yearB` | Compare two periods |
+| POST | `/api/chat` | `{ question }` → grounded answer + sources |
+| POST | `/api/tax/simulate` | `{ additional80C, additional80D, homeLoanInterest }` |
+| GET | `/api/checklist` | Investment proof checklist |
+| GET | `/api/audit` | Audit logs (admin) |
+
+## Tax Simulation Assumptions
+
+- Simplified Indian income tax slabs (illustrative, **not for compliance**)
+- Standard deduction ₹50,000; 80C limit ₹1,50,000; 80D limit ₹25,000
+- Annual gross = latest monthly gross × 12
+- Does not model HRA exemption, LTA rules, or regime selection in full
+
+## Testing
+
+```bash
+npm test
+```
+
+Covers:
+
+- Unauthorized cross-user access
+- Payslip comparison logic
+- Tax simulation & step breakdown
+- Checklist generation for missing proofs
+- Payslip field validation (inconsistent net pay)
+- Edge cases (unknown employee, capped 80C)
+
+## Known Limitations
+
+- Mock payroll data (not connected to real HRIS)
+- In-memory session/upload store (resets on server restart)
+- Simplified tax logic — documented assumptions apply
+- OCR falls back to mock sample without LLM token
+- No production encryption, compliance certification, or real SSO
+
+## Scripts
+
+```bash
+npm run dev      # Development server
+npm run build    # Production build
+npm run start    # Production server
+npm run lint     # ESLint
+npm test         # Unit tests
+```
+
+## Tech Stack
+
+- **Next.js 16** (App Router) + **React 19** + **TypeScript**
+- **Tailwind CSS 4**
+- **Vitest** for unit tests
+- **LLM Wrapper** for AI/OCR (optional)
