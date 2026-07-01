@@ -3,7 +3,6 @@ import {
   computeSlabTax,
   estimateAnnualTax,
   estimateHraExemption,
-  formatSlabLabel,
 } from "@/lib/tax/calculator";
 import {
   HEALTH_EDUCATION_CESS_RATE,
