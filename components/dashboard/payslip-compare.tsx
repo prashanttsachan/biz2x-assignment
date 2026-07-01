@@ -59,6 +59,19 @@ export function PayslipComparePanel() {
     [periods]
   );
 
+  const periodsForB = useMemo(
+    () => periods.filter((p) => p.key !== periodA),
+    [periods, periodA]
+  );
+
+  function handlePeriodAChange(key: string) {
+    setPeriodA(key);
+    if (key === periodB) {
+      const alternative = periods.find((p) => p.key !== key);
+      if (alternative) setPeriodB(alternative.key);
+    }
+  }
+
   async function compare() {
     const a = periodMap.get(periodA);
     const b = periodMap.get(periodB);
@@ -116,12 +129,12 @@ export function PayslipComparePanel() {
           label="Period A"
           value={periodA}
           periods={periods}
-          onChange={setPeriodA}
+          onChange={handlePeriodAChange}
         />
         <PeriodSelect
           label="Period B"
           value={periodB}
-          periods={periods}
+          periods={periodsForB}
           onChange={setPeriodB}
         />
       </div>
@@ -135,16 +148,10 @@ export function PayslipComparePanel() {
 
       <PrimaryButton
         onClick={compare}
-        disabled={loading || periods.length < 2 || periodA === periodB}
+        disabled={loading || periods.length < 2 || !periodB}
       >
         {loading ? "Comparing..." : "Compare Payslips"}
       </PrimaryButton>
-
-      {periodA === periodB && periods.length >= 2 && (
-        <p className="mt-2 text-xs text-slate-500">
-          Select two different periods to compare.
-        </p>
-      )}
 
       {error && (
         <div className="mt-4">
