@@ -72,9 +72,12 @@ ${context.taxDeclarationJson}
 ${context.uploadedPayslipsJson}
 
 === RESPONSE FORMAT ===
-- Be concise but complete.
-- Use bullet points for breakdowns.
+- Use **Markdown** formatting in every response.
+- Use **bold** for salary amounts, dates, and key labels (e.g. **₹81,260**, **May 2024**).
+- Use bullet lists (- item) for breakdowns and deductions.
+- Use numbered lists for step-by-step explanations when helpful.
 - Include source references like [Source: Mar 2025 payslip] when stating specific values.
+- Keep paragraphs short (2–3 sentences max).
 - If comparing months, only use months present in the data.`;
 }
 
@@ -89,7 +92,7 @@ ${payrollSummary}
 
 Question: ${question}
 
-Answer in simple language with specific amounts from the data.`;
+Answer in Markdown with **bold** amounts and bullet lists. Use simple language with specific amounts from the data.`;
 }
 
 export const COMPONENT_EXPLANATIONS: Record<string, string> = {

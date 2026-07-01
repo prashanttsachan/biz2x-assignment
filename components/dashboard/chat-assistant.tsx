@@ -1,6 +1,7 @@
 "use client";
 
 import type { ChatMessage } from "@/lib/types";
+import { ChatMarkdown } from "@/components/chat-markdown";
 import { apiFetch } from "@/lib/client/api";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBox, PanelShell, PrimaryButton } from "./shared";
@@ -93,13 +94,13 @@ export function ChatAssistant() {
             className={`mb-3 ${msg.role === "user" ? "text-right" : "text-left"}`}
           >
             <div
-              className={`inline-block max-w-[85%] rounded-xl px-4 py-2 text-sm whitespace-pre-wrap ${
+              className={`inline-block max-w-[85%] rounded-xl px-4 py-2 text-sm ${
                 msg.role === "user"
                   ? "bg-indigo-600 text-white"
                   : "bg-white border border-slate-200 text-slate-800"
               }`}
             >
-              {msg.content}
+              <ChatMarkdown content={msg.content} role={msg.role} />
             </div>
             {msg.sources && msg.sources.length > 0 && (
               <div className="mt-1 text-xs text-slate-500">
