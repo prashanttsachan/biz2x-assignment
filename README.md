@@ -15,6 +15,13 @@ AI-powered employee financial wellness prototype that helps staff understand sal
 | **Access Control** | User-level auth; employees see only their data; admin gets sanitized summary |
 | **Audit Logging** | Upload, query, view, and admin actions logged |
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README.md](./README.md) | Setup, API reference, deployment, demo accounts |
+| [docs/PROJECT_DOCUMENTATION.md](./docs/PROJECT_DOCUMENTATION.md) | Overview, HLD, LLD, interview Q&A (20 questions with answers) |
+
 ## Quick Start
 
 ```bash
